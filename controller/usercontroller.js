@@ -49,7 +49,7 @@ export async function loginuser(req,res){
                     isblock:user.isblock,
                     isemailverified:user.isemailverified,
                     image:user.image
-                },"secretkey99")
+                },process.env.jwt_key)
 
                 res.json({message : "Login successfull",token:token})
                 return          
