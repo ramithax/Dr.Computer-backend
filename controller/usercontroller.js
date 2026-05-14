@@ -51,7 +51,7 @@ export async function loginuser(req,res){
                     image:user.image
                 },process.env.jwt_key)
 
-                res.json({message : "Login successfull",token:token})
+                res.json({message : "Login successfull",token:token,isadmin:user.isadmin})
                 return          
             }
             else{
