@@ -1,7 +1,7 @@
 import Order from "../models/order.js"
 import Product from "../models/product.js"
 
-export async function creteOrder(req,res){
+export async function createOrder(req,res){
     
     try{
         if(req.user == null ){
@@ -91,3 +91,5 @@ export async function creteOrder(req,res){
         })
     }
 }
+
+export default createOrder

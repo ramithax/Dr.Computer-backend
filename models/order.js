@@ -4,8 +4,8 @@ const orderschema = mongoose.Schema(
     {
         orderId : {
             type : String,
-            required = true,
-            unique = true
+            required : true,
+            unique : true
         },
         email : {
             type : String,
@@ -20,7 +20,7 @@ const orderschema = mongoose.Schema(
             required : true
         },
         addressLine1 : {
-            type : string,
+            type : String,
             required : true
         },
         addressLine2 : {
@@ -41,7 +41,7 @@ const orderschema = mongoose.Schema(
             default : "Pending"
         },
         date : {
-            type : date,
+            type : Date,
             required : true,
             default : Date.now
         },
@@ -50,7 +50,7 @@ const orderschema = mongoose.Schema(
                 product : {
                     productId: {
                         type: String,
-                        required = true
+                        required : true
                     },
                     name: {
                         type: String,
