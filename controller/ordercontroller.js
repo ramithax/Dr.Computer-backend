@@ -1,7 +1,7 @@
 import Order from "../models/order.js";
 import Product from "../models/product.js";
 
-export default async function createOrder(req, res) {
+export async function createOrder(req, res) {
   try {
     if (req.user == null) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -79,5 +79,70 @@ export default async function createOrder(req, res) {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+}
+
+
+export async function getAllorders(req, res) {
+
+  if (req.user == null) {
+    return res.status(401).json({
+      message: "Unauthorized user"
+    })
+  }
+
+  try {
+
+    if (req.user.isAdmin == true) {
+
+      const pageSizeInString = req.params.pageSize || 10;
+      const pageNumberInString = req.params.pageNumber || 1;
+
+      const pageSize = parseInt(pageSizeInString);
+      const pageNumber = parseInt(pageNumberInString);
+
+      const orderCount = await Order.countDocuments();
+
+      const totalPages = Math.ceil(orderCount / pageSize)
+
+      const order = await Order.find().sort({ date: -1 }).skip((pageNumber - 1) * pageSize).limit(pageSize);
+
+      return res.json({
+        message: "Orders fetched successfully",
+        orders: order,
+        totalPages: totalPages,
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        orderCount: orderCount
+      })
+
+    } else {
+
+      const pageSizeInString = req.params.pageSize || 10;
+      const pageNumberInString = req.params.pageNumber || 1;
+
+      const pageSize = parseInt(pageSizeInString);
+      const pageNumber = parseInt(pageNumberInString);
+
+      const orderCount = await Order.countDocuments();
+
+      const totalPages = Math.ceil(orderCount / pageSize)
+
+      const order = await Order.find({ email: req.user.email }).sort({ date: -1 }).skip((pageNumber - 1) * pageSize).limit(pageSize);
+
+      return res.json({
+        message: "Orders fetched successfully",
+        orders: order,
+        totalPages: totalPages,
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        orderCount: orderCount
+      })
+    }
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    })
   }
 }
