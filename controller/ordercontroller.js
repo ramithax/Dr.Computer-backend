@@ -146,3 +146,30 @@ export async function getAllorders(req, res) {
     })
   }
 }
+
+
+export async function updateOrderStatus(req, res) {
+  if (req.user == null || req.user.isAdmin == false) {
+    res.status(401).json({ message: "Unauthorized" })
+    return
+  }
+
+  try {
+
+    const order = await Order.findOne({ orderId: req.params.orderId })
+
+    if (order == null) {
+      res.status(404).json({ message: "Order not found" })
+      return
+    }
+
+    await Order.updateOne(
+      { orderId: req.params.orderId },
+      { status: req.body.status }
+    )
+    res.json({ message: "Order status updated successfully" })
+
+  } catch (err) {
+    res.json({ message: err.message })
+  }
+}
