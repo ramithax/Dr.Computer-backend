@@ -5,6 +5,6 @@ const userrouter = new Router()
 
 userrouter.post('/', createuser)
 userrouter.post('/login', loginuser)
-userrouter.get("/", getUser)
+userrouter.get("/me", getUser)
 
 export default userrouter
