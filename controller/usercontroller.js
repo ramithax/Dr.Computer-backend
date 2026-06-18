@@ -112,3 +112,69 @@ export async function getUser(req, res) {
     }
 
 }
+
+export async function updatePassword(req, res) {
+
+    if (req.user == null) {
+        return res.status(401).json({
+            message: "Unauthorized user"
+        })
+    }
+
+    const password = req.body.password
+
+    const passwordHash = bcrypt.hashSync(password, 10)
+
+    try {
+
+        const email = req.user.email
+
+        await User.updateOne({ email: email }, { password: passwordHash })
+
+        res.json({
+            message: "Password updated successfully"
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "internal server error"
+        })
+    }
+}
+
+export async function updateProfile(req, res) {
+
+    if (req.user == null) {
+        return res.status(401).json({
+            message: "Unauthorized user"
+        })
+    }
+
+    try {
+        const email = req.user.email
+
+        const user = await User.findOne({ email: email });
+
+        if (user == null) {
+            return res.status(404).json({
+                message: "User not found"
+            })
+        }
+
+        await User.updateOne({ email: email }, {
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            image: req.body.image
+        });
+
+        res.json({
+            message: "Profile updated successfully"
+        })
+
+    }
+    catch (error) {
+        return res.status(500).json({
+            message: "internal server error"
+        })
+    }
+}
