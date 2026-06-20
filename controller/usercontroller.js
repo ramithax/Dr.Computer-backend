@@ -1,6 +1,7 @@
 import User from "../models/user.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import axios from "axios"
 
 export async function createuser(req, res) {
     try {
@@ -177,4 +178,24 @@ export async function updateProfile(req, res) {
             message: "internal server error"
         })
     }
+}
+
+export async function googleLogin(req, res) {
+
+    const accessToken = req.body.accessToken
+
+    axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        }
+    })
+
+    const user = await User.findOne({ email: res.data.email })
+
+    if (user == null) {
+
+    }
+
+    console.log(res.data)
+
 }
