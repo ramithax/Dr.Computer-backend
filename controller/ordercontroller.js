@@ -136,7 +136,7 @@ export async function getAllorders(req, res) {
         totalPages: totalPages,
         pageNumber: pageNumber,
         pageSize: pageSize,
-        orderCount: orderCount
+        totalOrders: orderCount
       })
     }
 

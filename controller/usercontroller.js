@@ -181,21 +181,72 @@ export async function updateProfile(req, res) {
 }
 
 export async function googleLogin(req, res) {
+    try {
+        const accessToken = req.body.accessToken;
 
-    const accessToken = req.body.accessToken
+        const response = await axios.get(
+            "https://www.googleapis.com/oauth2/v1/userinfo",
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            }
+        );
 
-    axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
+        const data = response.data;
+
+        const user = await User.findOne({ email: data.email });
+
+        if (!user) {
+            const randomPassword = Math.random().toString(36).slice(-8);
+            const passwordHash = bcrypt.hashSync(randomPassword, 10);
+
+            const newUser = new User({
+                email: data.email,
+                firstname: data.given_name,
+                lastname: data.family_name,
+                password: passwordHash,
+                image: data.picture,
+                isemailverified: true
+            });
+
+            await newUser.save();
+
+            const token = jwt.sign({
+                email: data.email,
+                firstname: data.given_name,
+                lastname: data.family_name,
+                isadmin: newUser.isadmin,
+                isblock: newUser.isblock,
+                isemailverified: newUser.isemailverified,
+                image: newUser.image
+            }, process.env.jwt_key);
+
+            return res.json({
+                message: "Login successful",
+                token,
+                isadmin: newUser.isadmin
+            });
         }
-    })
 
-    const user = await User.findOne({ email: res.data.email })
+        const token = jwt.sign({
+            email: user.email,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            isadmin: user.isadmin,
+            isblock: user.isblock,
+            isemailverified: user.isemailverified,
+            image: user.image
+        }, process.env.jwt_key);
 
-    if (user == null) {
+        return res.json({
+            message: "Login successful",
+            token,
+            isadmin: user.isadmin
+        });
 
+    } catch (error) {
+        console.error("Google login error:", error);
+        res.status(500).json({ message: "Google login failed" });
     }
-
-    console.log(res.data)
-
 }
