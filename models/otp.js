@@ -9,6 +9,11 @@ const otpSchema = new mongoose.Schema({
     otpHash: {
         type: String,
         required: true,
+    },
+    time: {
+        type: Date,
+        required: true,
+        default: Date.now
     }
 
 })

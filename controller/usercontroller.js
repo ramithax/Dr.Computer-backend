@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken"
 import axios from "axios"
 import OTP from "../models/otp.js"
 import nodemailer from "nodemailer"
+import dotenv from "dotenv";
+dotenv.config();
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -269,6 +271,7 @@ export async function sendOtp(req, res) {
     try {
 
         const email = req.body.email
+
         const user = await User.findOne({ email: email })
 
         if (!user) {
@@ -308,8 +311,57 @@ export async function sendOtp(req, res) {
         })
     }
     catch (error) {
+        console.error("SEND OTP ERROR:", error);
         return res.status(500).json({
-            message: "internal server error"
-        })
+            message: error.message
+        });
     }
+}
+
+export async function verifyOTP(req, res) {
+
+    try {
+
+        const email = req.body.email
+        const otp = req.body.otp
+        const password = req.body.password
+
+        const otpRecord = await OTP.findOne({ email: email })
+
+        if (otpRecord == null) {
+            res.status(404).json({ message: "OTP not found" })
+            return
+        }
+
+        //check if otp time passed 10 minutes
+
+        const currentTime = new Date()
+        const otpTime = new Date(otpRecord.time)
+
+        const timeDiff = (currentTime - otpTime) / (1000 * 60) // time difference in minutes
+
+        if (timeDiff > 10) {
+            res.status(400).json({ message: "OTP has expired" })
+            return
+        }
+
+        const isOTPValid = bcrypt.compareSync(otp, otpRecord.otp)
+
+        if (!isOTPValid) {
+            res.status(400).json({ message: "Invalid OTP" })
+            return
+        }
+
+        const passwordHash = bcrypt.hashSync(password, 10)
+
+        await User.updateOne({ email: email }, { password: passwordHash })
+
+        await OTP.deleteOne({ email: email })
+
+        res.json({ message: "Password updated successfully" })
+
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+
 }
