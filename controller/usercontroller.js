@@ -2,6 +2,19 @@ import User from "../models/user.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import axios from "axios"
+import OTP from "../models/otp.js"
+import nodemailer from "nodemailer"
+
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.email,
+        pass: process.env.app_password
+    }
+})
 
 export async function createuser(req, res) {
     try {
@@ -248,5 +261,55 @@ export async function googleLogin(req, res) {
     } catch (error) {
         console.error("Google login error:", error);
         res.status(500).json({ message: "Google login failed" });
+    }
+}
+
+export async function sendOtp(req, res) {
+
+    try {
+
+        const email = req.body.email
+        const user = await User.findOne({ email: email })
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User not found"
+            })
+        }
+
+        if (user.isblock == true) {
+            return res.status(403).json({
+                message: "You are blocked"
+            })
+        }
+
+        await OTP.deleteOne({ email: email })
+
+        const otpNumber = Math.floor(100000 + Math.random() * 900000)
+
+        const otpHash = bcrypt.hashSync(otpNumber.toString(), 10)
+
+        await OTP.create({
+            email: email,
+            otpHash: otpHash
+        })
+
+        const message = {
+            from: process.env.email,
+            to: email,
+            subject: "OTP Verification",
+            text: `Your OTP is ${otpNumber}`
+        }
+
+        await transporter.sendMail(message)
+
+        return res.json({
+            message: "OTP sent successfully"
+        })
+    }
+    catch (error) {
+        return res.status(500).json({
+            message: "internal server error"
+        })
     }
 }
