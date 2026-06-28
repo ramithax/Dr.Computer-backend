@@ -365,3 +365,116 @@ export async function verifyOTP(req, res) {
     }
 
 }
+
+export async function getAllUsers(req, res) {
+
+    if (req.user == null || req.user.isadmin == false) {
+        return res.status(401).json({
+            message: "Unauthorized user"
+        })
+    }
+
+    try {
+        const pageSize = parseInt(req.params.pageSize) || 10;
+        const pageNumber = parseInt(req.params.pageNumber) || 1;
+
+        const userCount = await User.countDocuments();
+
+        const users = await User.find()
+            .skip((pageNumber - 1) * pageSize)
+            .limit(pageSize);
+
+        const totalPages = Math.ceil(userCount / pageSize);
+
+        return res.json({
+            message: "Users fetched successfully",
+            users: users,
+            totalPages: totalPages,
+            totalUsers: userCount,
+            pageNumber: pageNumber,
+            pageSize: pageSize
+        });
+
+    } catch (error) {
+        console.error("GET USERS ERROR:", error);
+        res.status(500).json({
+            message: error.message
+        })
+    }
+}
+
+
+export async function switchRole(req, res) {
+
+    if (req.user == null || req.user.isadmin == false) {
+        return res.status(401).json({
+            message: "Unauthorized user"
+        })
+    }
+
+    try {
+
+        const email = req.params.email
+
+        const user = await User.findOne({ email: email })
+
+        if (user == null) {
+            return res.status(404).json({
+                message: "User not found"
+            })
+        }
+
+        if (user.email == req.user.email) {
+            return res.status(400).json({
+                message: "You cannot switch your own role"
+            })
+        }
+
+        await User.updateOne({ email: email }, { isAdmin: !user.isAdmin })
+
+        res.json({ message: "User role updated successfully" })
+
+    }
+    catch (error) {
+        console.log("SWITCH ROLE ERROR:", error);
+        return res.status(500).json({
+            message: error.message
+        })
+    }
+}
+
+export async function switchBlock(req, res) {
+
+    if (req.user == null || req.user.isadmin == false) {
+        return res.status(401).json({
+            message: "Unauthorized user"
+        })
+    }
+
+    try {
+
+        const email = req.params.email
+
+        const user = await User.findOne({ email: email })
+
+        if (user == null) {
+            res.status(404).json({ message: "User not found" })
+            return
+        }
+
+        if (user.email == req.user.email) {
+            res.status(400).json({ message: "You cannot change your own block state" })
+            return
+        }
+
+        await User.updateOne({ email: email }, { isBlocked: !user.isBlocked })
+
+        res.json({ message: "User state updated successfully" })
+
+    }
+    catch (error) {
+        return res.status(500).json({
+            message: error.message
+        })
+    }
+}
