@@ -430,7 +430,7 @@ export async function switchRole(req, res) {
             })
         }
 
-        await User.updateOne({ email: email }, { isAdmin: !user.isAdmin })
+        await User.updateOne({ email: email }, { isadmin: !user.isadmin })
 
         res.json({ message: "User role updated successfully" })
 
@@ -467,7 +467,7 @@ export async function switchBlock(req, res) {
             return
         }
 
-        await User.updateOne({ email: email }, { isBlocked: !user.isBlocked })
+        await User.updateOne({ email: email }, { isblock: !user.isblock })
 
         res.json({ message: "User state updated successfully" })
 
